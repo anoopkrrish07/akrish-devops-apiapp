@@ -1,0 +1,14 @@
+# dev-values-passwordgenrator-v1.yaml
+image:
+  repository: anoopkrrish07/apiapp
+  pullPolicy: IfNotPresent
+  tag: "v1-latest"
+
+imagePullSecrets:
+  - name: apiapp-secret
+
+replicaCount: 2
+
+service:
+  type: ClusterIP
+  port: 5000
