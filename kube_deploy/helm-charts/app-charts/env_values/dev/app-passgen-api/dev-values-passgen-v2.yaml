@@ -4,8 +4,8 @@ image:
   pullPolicy: IfNotPresent
   tag: "v1-latest"
 
-imagePullSecrets:
-  - name: apiapp-secret
+# imagePullSecrets:
+#   - name: apiapp-secret
 
 replicaCount: 2
 
