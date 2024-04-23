@@ -28,9 +28,9 @@ jobs:
         role-session-name: appbuild
         aws-region: ${{ env.AWS_DEFAULT_REGION }}
 
-    - name: Getting the tag value
-      id: getting-tag
-      run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+    # - name: Getting the tag value
+    #   id: getting-tag
+    #   run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
     - name: Login to ECR
       id: login-ecr
@@ -55,4 +55,4 @@ jobs:
     - name: Deploy on EKS
       run: |
         cd kube_deploy/helm-charts/app-charts
-        helm upgrade --install dev-passgen-$TAG_NAME ./api-app/app-passgen-api/ --create-namespace --namespace $NAMESPACE ./env_values/dev/app-passgen-api/dev-values-passgen-v1.yaml
+        helm upgrade --install dev-passgen-app ./api-app/app-passgen-api/ --create-namespace --namespace $NAMESPACE -f ./env-values/dev/app-passgen-api/dev-values-passgen.yaml
