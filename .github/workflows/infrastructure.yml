@@ -65,7 +65,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: "1.7.4"
+          terraform_version: "1.8.1"
 
       - name: Terraform Init
         id: init
@@ -81,6 +81,56 @@ jobs:
         id: plan
         if: ${{ github.event.inputs.tfAction == 'apply' || github.event.inputs.tfAction == 'plan' }}
         run: terraform plan --var-file="../../tf_main/region/${{ github.event.inputs.tfEnv }}/aws_vpc.tfvars" -out="${{ env.TF_PLAN_OUT }}"
+
+      - name: Terraform Apply
+        id: apply
+        if: ${{ github.event.inputs.tfAction == 'apply' }}
+        run: terraform apply ${{ env.TF_PLAN_OUT }}
+  
+## EKS Deployment
+  eks_deployment:
+    name: "Deploying AWS EKS Cluster"
+    if: ${{ github.event.inputs.tfDeploy == 'aws-eks' }}
+    runs-on: ubuntu-latest
+    env:
+      AWS_DEFAULT_REGION: ${{ github.event.inputs.tfRegion }}
+      TF_PLAN_OUT: ${{ github.event.inputs.tfEnv }}-${{ github.event.inputs.tfDeploy }}-out.tfplan
+    permissions:
+        id-token: write # This is required for requesting the JWT
+        contents: read  # This is required for actions/checkout
+    defaults:
+      run:
+        working-directory: infra_iac/tf_modules/aws_eks
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.DEV_AWS_ROLE_ARN }}
+          role-session-name: githubactionassumerole
+          aws-region: ${{ env.AWS_DEFAULT_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.8.1"
+
+      - name: Terraform Init
+        id: init
+        if: ${{ github.event.inputs.tfAction == 'apply' || github.event.inputs.tfAction == 'plan' }}
+        run: terraform init
+  
+      - name: Terraform Validate
+        id: validate
+        if: ${{ github.event.inputs.tfAction == 'apply' || github.event.inputs.tfAction == 'plan' }}
+        run: terraform validate -no-color
+
+      - name: Terraform Plan
+        id: plan
+        if: ${{ github.event.inputs.tfAction == 'apply' || github.event.inputs.tfAction == 'plan' }}
+        run: terraform plan --var-file="../../tf_main/region/${{ github.event.inputs.tfEnv }}/aws_eks.tfvars" -out="${{ env.TF_PLAN_OUT }}"
 
       - name: Terraform Apply
         id: apply
